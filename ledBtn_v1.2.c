@@ -1,7 +1,7 @@
 /* 
  *  joystick Led Button
- *  Author       : sana2dang ( fly9p ) - sana2dang@naver.com
- *  Creation Date: Mar 8, 2017
+ *  Author       : sana2dang ( fly9p ) - sana2dang@naver.com / sana2dang@gmail.com
+ *  Creation Date: 2017 - 03 - 28
  *  Cafe         : http://cafe.naver.com/raspigamer
  *  Thanks to    : zzeromin, smyani, GreatKStar, KimPanda, StarNDevil, angel
  * 
@@ -12,6 +12,7 @@
  * 
  * jstest
  * https://github.com/flosse/linuxconsole/blob/master/utils/jstest.c
+  *
  * - complie -
  * sudo gcc ledBtn.c -o ledBtn -lwiringPi -lpthread
  * 
@@ -37,119 +38,141 @@
 #define pinR  12	// GPIO 12 R
 #define pinY  13	// GPIO 13 Y
 #define pinB  16	// GPIO 16 B
-#define pinX  19		// GPIO 19 X
-#define pinAr  20	// GPIO 20 A(R)
-#define pinAg  21	// GPIO 21 A(G)
+#define pinX  19	// GPIO 19 X
+#define pinAr  21	// GPIO 20 A(R)
+#define pinAg  20	// GPIO 21 A(G)
 #define pinAb  26	// GPIO 26 A(B)
 
 
-int AbtnPress	= 0;	// AbtnPress
-int chargeShot	= 0;	// hargeShot
-time_t sTime	= 0;	// AbtnPress Start Time
-time_t eTime	= 0;	// AbtnPress End Time
+#define AbtnShotPressTime 700	
+#define AbtnLongPressTime 1500
+#define stayTime 10000
+
+
+
+int RGBbtnPress	= 0;	// RGBbtnPress on/off flag
+int chargeShot	= 0;	// chargeShot cnt
+long sTime	= 0;	// RGBbtnPress Start Time
 int chargeCnt 	= 0;	// Charge Count
 int k = 0;		// Led Cycle Count
 
 
-time_t sStopTime = 0;
-time_t eStopTime = 0;
-int lotationFlag = 0;
-int lotationCnt = 0;
+long sStopTime = 0;	// stop time
+int rotationFlag = 0;	// rotation
+int rotationCnt = 0;
 
-
-void funLotationLed()
+void funAllLightOn(mode)
 {
-
+	if( mode == 0 )		// ALL LED ON
+	{
+		digitalWrite(pinAr,1);
+		digitalWrite(pinAg,1);
+		digitalWrite(pinAb,1);
+		digitalWrite(pinB,1);
+		digitalWrite(pinX,1);
+		digitalWrite(pinY,1);
+		digitalWrite(pinL,1);
+		digitalWrite(pinR,1);
+	}
+	if( mode == 1 )		// ALL LED ON without A btn
+	{
+		digitalWrite(pinB,1);
+		digitalWrite(pinX,1);
+		digitalWrite(pinY,1);
+		digitalWrite(pinL,1);
+		digitalWrite(pinR,1);
+	}
 }
 
-void funAllLightOn()
+void funAllLightOff(mode)
 {
-	digitalWrite(pinB,1);
-	digitalWrite(pinX,1);
-	digitalWrite(pinY,1);
-	digitalWrite(pinL,1);
-	digitalWrite(pinR,1);
+	if( mode == 0 )		// ALL LED OFF
+	{
+		digitalWrite(pinAr,0);
+		digitalWrite(pinAg,0);
+		digitalWrite(pinAb,0);
+		digitalWrite(pinB,0);
+		digitalWrite(pinX,0);
+		digitalWrite(pinY,0);
+		digitalWrite(pinL,0);
+		digitalWrite(pinR,0);
+	}
+	if( mode == 1 )		// ALL LED OFF without A btn
+	{
+		digitalWrite(pinB,0);
+		digitalWrite(pinX,0);
+		digitalWrite(pinY,0);
+		digitalWrite(pinL,0);
+		digitalWrite(pinR,0);
+	}
+
 }
-
-void funAllLightOff()
-{
-	digitalWrite(pinB,0);
-	digitalWrite(pinX,0);
-	digitalWrite(pinY,0);
-	digitalWrite(pinL,0);
-	digitalWrite(pinR,0);
-
-}
-
-
 
 
 void funRainbowLed()
-{
-
-	if( lotationFlag == 1)
+{	
+	if( rotationFlag == 1)	// stay button led
 	{
-		switch( lotationCnt )
+		switch( rotationCnt )
 		{
 			case 0:
+				digitalWrite(pinAr,1);
+				digitalWrite(pinAg,1);
 				digitalWrite(pinAb,1);
-				lotationCnt ++;
+				rotationCnt ++;
 			break;
 			case 1: 
 				digitalWrite(pinB,1);
-				lotationCnt ++;
+				rotationCnt ++;
 			break;
 			case 2: 
 				digitalWrite(pinR,1);
-				lotationCnt ++;
+				rotationCnt ++;
 			break;
 			case 3: 
 				digitalWrite(pinL,1);
-				lotationCnt ++;
+				rotationCnt ++;
 			break;
 			case 4: 
 				digitalWrite(pinY,1);
-				lotationCnt ++;
+				rotationCnt ++;
 			break;
 			case 5: 
 				digitalWrite(pinX,1);
-				lotationCnt ++;
+				rotationCnt = 0;
 			break;	
 			default: 
-				lotationCnt = 0;	
+				funAllLightOff(0);	
 		}
 		delay(500);		// 0.5sec 
-		funAllLightOff();
-		
+		funAllLightOff(0);		
 	
 	}
 	else
 	{
-		lotationCnt = 0;	
+		rotationCnt = 0;	
 	}
 
-
-
 	// A Btn Event
-	if( AbtnPress == 1 && chargeShot == 0 )
+	if( RGBbtnPress == 1 && chargeShot == 0 )
 	{
 		switch( chargeCnt )
 		{
-			case 0:
-				digitalWrite(pinAr,1);
-				digitalWrite(pinAg,0);
-				digitalWrite(pinAb,0);
-			break;
-			case 1: 
-				digitalWrite(pinAr,0);
-				digitalWrite(pinAg,1);
-				digitalWrite(pinAb,0);
-			break;
-			case 2: 
+			case 0: 
 				digitalWrite(pinAr,0);
 				digitalWrite(pinAg,0);
 				digitalWrite(pinAb,1);				
 			break;
+			case 1:
+				digitalWrite(pinAr,0);
+				digitalWrite(pinAg,1);
+				digitalWrite(pinAb,1);
+			break;
+			case 2: 
+				digitalWrite(pinAr,0);
+				digitalWrite(pinAg,1);
+				digitalWrite(pinAb,0);
+			break;			
 			case 3: 
 				digitalWrite(pinAr,1);
 				digitalWrite(pinAg,1);
@@ -158,11 +181,11 @@ void funRainbowLed()
 			case 4: 
 				digitalWrite(pinAr,1);
 				digitalWrite(pinAg,0);
-				digitalWrite(pinAb,1);
+				digitalWrite(pinAb,0);
 			break;
 			case 5: 
-				digitalWrite(pinAr,0);
-				digitalWrite(pinAg,1);
+				digitalWrite(pinAr,1);
+				digitalWrite(pinAg,0);
 				digitalWrite(pinAb,1);				
 			break;
 			case 6: 
@@ -177,20 +200,18 @@ void funRainbowLed()
 				chargeCnt = 0;
 			break;
 		}
-		delay(50);
-		
-		eTime = clock();		// AbtnPress End Time Init		
-		
-		printf("%lf\n", (double)(eTime - sTime )/CLOCKS_PER_SEC );
-		if( (double)(eTime - sTime )/CLOCKS_PER_SEC  < 0.0015 )	// AbtnPress End - Start Time < about 1sec	
-		{						
+		delay(50);		
+
+		if( ( millis() - sTime ) < AbtnShotPressTime )		// RGBbtnPress keep check1
+		{					
 			chargeCnt = 0;
-		}else
+		}
+		else
 		{
 			
-			if( (double)(eTime - sTime )/CLOCKS_PER_SEC  >= 0.0030 )	// AbtnPress End - Start Time >=  2sec							
+			if( ( millis() - sTime )  > AbtnLongPressTime )	// RGBbtnPress keep check2
 			{				
-				chargeShot = 1;
+				chargeShot = 1;				
 				digitalWrite(pinAr,0);	// RGB Led Off
 				digitalWrite(pinAg,0);	// RGB Led Off
 				digitalWrite(pinAb,0);	// RGB Led Off
@@ -201,7 +222,7 @@ void funRainbowLed()
 			}
 		}
 	}
-	if( AbtnPress == 0 )
+	if( RGBbtnPress == 0 )
 	{	
 		if( chargeShot == 1 )
 		{
@@ -210,60 +231,53 @@ void funRainbowLed()
 				digitalWrite(pinAr,1);
 				digitalWrite(pinAg,0);
 				digitalWrite(pinAb,0);
-				funAllLightOn();
-				delay(30);
+				funAllLightOn(1);
+				delay(40);
 
 				digitalWrite(pinAr,0);
 				digitalWrite(pinAg,1);
 				digitalWrite(pinAb,0);
-				funAllLightOff();
-				delay(30);
+				funAllLightOff(1);
+				delay(60);
 	
 				digitalWrite(pinAr,0);
 				digitalWrite(pinAg,0);
 				digitalWrite(pinAb,1);				
-				funAllLightOn();
-				delay(30);
+				funAllLightOn(1);
+				delay(40);
 
 				digitalWrite(pinAr,1);
 				digitalWrite(pinAg,1);
 				digitalWrite(pinAb,0);			
-				funAllLightOff();
-				delay(30);
+				funAllLightOff(1);
+				delay(60);
 
 				digitalWrite(pinAr,1);
 				digitalWrite(pinAg,0);
 				digitalWrite(pinAb,1);
-				funAllLightOn();
-				delay(30);
+				funAllLightOn(1);
+				delay(40);
 
 				digitalWrite(pinAr,0);
 				digitalWrite(pinAg,1);
 				digitalWrite(pinAb,1);			
-				funAllLightOff();
-				delay(30);
+				funAllLightOff(1);
+				delay(60);
 		
 				digitalWrite(pinAr,1);
 				digitalWrite(pinAg,1);
 				digitalWrite(pinAb,1);			
-				funAllLightOn();
-				delay(30);
-				funAllLightOff();
+				funAllLightOn(1);
+				delay(40);
+				funAllLightOff(0);
 			}
-			funAllLightOn();
+			funAllLightOn(0);
 			delay(400);
-			funAllLightOff();
-
-
-	
-		}
-		digitalWrite(pinAr,0);		// RGB Led Off
-		digitalWrite(pinAg,0);		// RGB Led Off
-		digitalWrite(pinAb,0);		// RGB Led Off
+			funAllLightOff(0);
+		}		
 		
-		
-		chargeCnt	= 0;
-		chargeShot	= 0;
+		chargeCnt	= 0;		// init value
+		chargeShot	= 0;		// init value
 	}
 
 }
@@ -273,28 +287,19 @@ void* ledBtnThread(void *arg)
 {
 	int chargeCnt = 0;	
 	int k = 0;
-
-	sStopTime = clock();		// lotation time Start
+	
 	while(1)
 	{			
 		funRainbowLed();
 		usleep(1000);
 		
-		eStopTime = clock();
-
-		// 0.1은 약 4sec
-		if( (double)(eStopTime - sStopTime)/CLOCKS_PER_SEC  > 0.3 ) // 12sec no action
+		if( ( millis() - sStopTime ) > stayTime )	// rotation check
 		{
-			lotationFlag = 1;
+			rotationFlag = 1;
 		}
-		else
-		{
-			if( lotationFlag == 1 )
-				sStopTime = clock();
-			lotationFlag = 0;
-		}
-
+		
 	}
+	
 }
 
 
@@ -305,8 +310,8 @@ int main (int argc, char **argv)
 {
 	int fd;
 	unsigned char axes = 2;
-	unsigned char buttons = 2;
 	int version = 0x000800;
+	unsigned char buttons = 2;
 	char name[NAME_LENGTH] = "Unknown";
 
 	// thread value
@@ -341,9 +346,9 @@ int main (int argc, char **argv)
 		name, axes, buttons );
 	printf("Testing ... (Ctrl+C to exit)\n");
 
-	/*
-	* Start led btn
-	*/
+	
+	
+	// Start led btn	
 	if (argc == 2 ) 
 	{
 
@@ -358,20 +363,9 @@ int main (int argc, char **argv)
 			if( res )
 		printf("thread create error!\n");
 
-
-		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		if( wiringPiSetupGpio() == -1 )
 			return 0;
-		/*
-		printf("GPIO pin number\n A:%d\tB:%d\tX:%d\tY:%d\tL:%d\tR:%d\n", 
-			atoi(argv[2]),
-			atoi(argv[3]),
-			atoi(argv[4]),
-			atoi(argv[5]),
-			atoi(argv[6]),
-			atoi(argv[7])
-			);
-		*/
+		
 		pinMode(pinAr, OUTPUT);	
 		pinMode(pinAg, OUTPUT);	
 		pinMode(pinAb, OUTPUT);	
@@ -417,22 +411,26 @@ int main (int argc, char **argv)
 			if (buttons) { 
 				for (i = 0; i < buttons; i++)
 				{
-					printf("%2d:%s ", i, button[i] ? "on " : "off");
+					//printf("%2d:%s ", i, button[i] ? "on " : "off");
 					
-					sStopTime = clock();
-					
+					sStopTime = millis();		// rotation time Start
+					rotationFlag = 0;		// stop rotation
+
 					if( i==0 && button[i] == 1 )
 					{
-						if( AbtnPress  != 1 )
+						if( RGBbtnPress  != 1 )
 						{
-							AbtnPress  = 1;							
-							sTime = clock();
+							RGBbtnPress  = 1;							
+							sTime = millis();
 						}
 					}
 					if( i==0 && button[i] == 0 )
 					{						
-						AbtnPress  = 0;							
-						sTime = clock();
+						RGBbtnPress  = 0;							
+						sTime = millis();
+						digitalWrite(pinAr,0);		// RGB Led Off
+						digitalWrite(pinAg,0);		// RGB Led Off
+						digitalWrite(pinAb,0);		// RGB Led Off		
 					}
 
 					
@@ -465,8 +463,28 @@ int main (int argc, char **argv)
 						digitalWrite(pinR,1);
 					if( i==5 && button[i] == 0 && chargeShot == 0 )
 						digitalWrite(pinR,0);
-				
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////					
+
+					// Select 버튼( Coin )
+					if( i==6 && button[i] == 1 )
+					{
+						//digitalWrite(pinAg,1);
+						funAllLightOn(0);
+						delay(40);
+						//digitalWrite(pinAg,0);
+						funAllLightOff(0);
+						delay(40);
+						//digitalWrite(pinAg,1);
+						funAllLightOn(0);
+						delay(40);
+						//digitalWrite(pinAg,0);
+						funAllLightOff(0);
+						delay(40);
+						//digitalWrite(pinAg,1);
+						funAllLightOn(0);
+						delay(40);
+						//digitalWrite(pinAg,0);
+						funAllLightOff(0);
+					}				
 				}
 			}
 
