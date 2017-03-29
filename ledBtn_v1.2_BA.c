@@ -14,8 +14,9 @@
  * https://github.com/flosse/linuxconsole/blob/master/utils/jstest.c
   *
  * - complie -
- * sudo gcc ledBtn.c -o ledBtn -lwiringPi -lpthread
- * 
+ * sudo gcc ledBtn_v1.2_BA.c -o ledBtn_v1.2_BA -lwiringPi -lpthread
+ * sudo chmod 755 ledBtn_v1.2_BA
+ * ./ledBtn_v1.2_BA /dev/input/js0
  */
 
 #include <sys/ioctl.h>
